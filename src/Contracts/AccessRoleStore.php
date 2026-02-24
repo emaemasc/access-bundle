@@ -1,0 +1,18 @@
+<?php
+
+namespace Ema\AccessBundle\Contracts;
+
+use Ema\AccessBundle\Dto\AccessRoleDto;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+
+#[AutoconfigureTag]
+interface AccessRoleStore
+{
+    public function getEntityClass(): string;
+    /**
+     * @return AccessRoleDto[]
+     */
+    public function getRoles(): array;
+    public function getSuperRoles(): array;
+    public function findBy(array $params): array;
+}

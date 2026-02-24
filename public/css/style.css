@@ -1,0 +1,165 @@
+.emaemasc-access-container {
+    width: 100%;
+    max-width: 600px;
+    padding-bottom: 24px;
+}
+
+/* Preset Styles */
+.emaemasc-access-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 5px 0;
+}
+
+.emaemasc-access-preset {
+    display: inline-flex;
+    padding: 3px 7px;
+    border: 1px solid rgba(130, 130, 130, 0.2);
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-size: smaller;
+    cursor: pointer;
+}
+
+.emaemasc-access-preset.active {
+    border-color: blue;
+    color: blue;
+}
+
+.emaemasc-access-inner {
+    border: 1px solid rgba(130, 130, 130, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Group Styles */
+.emaemasc-access-group-header {
+    background-color: rgba(111,111,111,0.1);
+    padding: 3px 10px;
+    cursor: pointer;
+}
+
+.emaemasc-access-group-title {
+    margin: 0;
+    font-size: smaller;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.emaemasc-access-group-items {
+    padding: 3px 0;
+}
+
+/* Row Styles */
+.emaemasc-access-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    transition: background-color 0.2s ease;
+}
+
+.emaemasc-access-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.emaemasc-access-switch {
+    margin-left: 16px;
+}
+
+/* Toggle Switch Styles */
+.emaemasc-toggle-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.emaemasc-toggle-label {
+    display: block;
+    width: 50px;
+    height: 24px;
+    text-indent: -9999px;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 24px;
+    position: relative;
+    transition: background-color 0.3s;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.emaemasc-toggle-input:checked + .emaemasc-toggle-label {
+    background-color: #4CAF50;
+}
+
+.emaemasc-toggle-switch {
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.emaemasc-toggle-input {
+    vertical-align: middle;
+}
+
+.emaemasc-toggle-input:checked + .emaemasc-toggle-label .emaemasc-toggle-switch {
+    left: 28px;
+}
+
+/* Hover effect */
+.emaemasc-toggle-label:hover {
+    opacity: 0.9;
+}
+
+.emaemasc-toggle-label:hover .emaemasc-toggle-switch {
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* Disabled state */
+.emaemasc-toggle-input:disabled + .emaemasc-toggle-label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.emaemasc-toggle-input:disabled + .emaemasc-toggle-label .emaemasc-toggle-switch {
+    cursor: not-allowed;
+}
+
+/* Focus states for accessibility */
+.emaemasc-toggle-input:focus + .emaemasc-toggle-label {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+/* Animation for toggle */
+.emaemasc-toggle-switch {
+    transition: left 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Optional: Add icons or indicators */
+.emaemasc-toggle-label::before {
+    content: 'OFF';
+    position: absolute;
+    left: 8px;
+    top: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    text-indent: 0;
+    z-index: 1;
+}
+
+.emaemasc-toggle-input:checked + .emaemasc-toggle-label::before {
+    content: 'ON';
+    left: auto;
+    right: 8px;
+}
