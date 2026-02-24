@@ -45,6 +45,12 @@ class AccessType extends AbstractType
             }
         }
 
+        foreach ($this->presets as $key => $preset) {
+            if (empty($preset->items)) {
+                unset($this->presets[$key]);
+            }
+        }
+
         usort($this->groups, function ($a, $b) {
             return $a->sort <=> $b->sort;
         });
@@ -54,12 +60,16 @@ class AccessType extends AbstractType
     {
         foreach ($this->items as $item) {
             $builder->add('item_' . $item->getName(), CheckboxType::class, [
-                'label' => false,
+                'label' => $item->getTitle(),
                 'required' => false,
                 'attr' => [
+                    'class' => 'emaemasc-input',
                     'data-item-id' => $item->getName(),
                     'data-item-name' => $item->getName(),
                     'data-item-title' => $item->getTitle()
+                ],
+                'label_attr' => [
+                    'class' => 'emaemasc-input-label'
                 ],
                 'property_path' => '[' . $item->getName() . ']'
             ]);

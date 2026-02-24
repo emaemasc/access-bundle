@@ -2,10 +2,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const presets = document.querySelectorAll('.emaemasc-access-preset')
     const headers = document.querySelectorAll('.emaemasc-access-group-header')
-    const toggles = document.querySelectorAll('.emaemasc-toggle-input')
+    const toggles = document.querySelectorAll('.emaemasc-input')
 
     function checkPresets() {
-        const inputs = document.querySelectorAll('.emaemasc-toggle-input')
+        const inputs = document.querySelectorAll('.emaemasc-input')
         const enabled = []
         inputs.forEach(input => {
             if (input.checked) enabled.push(input.dataset.itemId)
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     presets.forEach(preset => {
         preset.onclick = function () {
             const items = JSON.parse(this.dataset.items)
-            const inputs = document.querySelectorAll('.emaemasc-toggle-input')
+            const inputs = document.querySelectorAll('.emaemasc-input')
             const isActive = preset.classList.contains('active')
             if (isActive) preset.classList.remove('active')
             inputs.forEach(input => {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     headers.forEach(header => {
         header.onclick = function () {
             const isActive = this.classList.contains('active')
-            const inputs = this.parentElement.querySelectorAll('.emaemasc-toggle-input')
+            const inputs = this.parentElement.querySelectorAll('.emaemasc-input')
             this.classList.toggle('active')
             inputs.forEach(input => {
                 input.value = !isActive

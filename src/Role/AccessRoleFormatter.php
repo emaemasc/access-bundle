@@ -12,7 +12,7 @@ class AccessRoleFormatter
     // return $role . ($request->isMethodSafe() ? '_read' : '_write');
     public static function from(string $className, ?string $methodName = null): string
     {
-        $role = \str_replace('\\', '', $className);
+        $role = 'EAB_' . \str_replace('\\', '', $className);
         if ($methodName !== null) {
             $role .= '_' . $methodName;
         }

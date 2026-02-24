@@ -19,11 +19,11 @@
             <div class="emaemasc-access-inner">
                 {% if groups|length > 0 %}
                     {% for group in groups %}
-                        {{ _self.emaemasc_access_group(form, items, group) }}
+                        {{ _self.emaemasc_access_group(form, group) }}
                     {% endfor %}
                 {% else %}
                     {% for item in items %}
-                        {{ _self.emaemasc_access_item(form, items, item.name) }}
+                        {{ _self.emaemasc_access_item(form, item.name) }}
                     {% endfor %}
                 {% endif %}
             </div>
@@ -44,39 +44,21 @@
     {# This block is intentionally empty to prevent label rendering #}
 {% endblock %}
 
-{% macro emaemasc_access_group(form, items, group) %}
+{% macro emaemasc_access_group(form, group) %}
     <div class="emaemasc-access-group">
         <div class="emaemasc-access-group-header">
             <span class="emaemasc-access-group-title">{{ group.title }}</span>
         </div>
         <div class="emaemasc-access-group-items">
-            {% for itemId in group.items %}
-                {{ _self.emaemasc_access_item(form, items, itemId) }}
+            {% for name in group.items %}
+                {{ _self.emaemasc_access_item(form, name) }}
             {% endfor %}
         </div>
     </div>
 {% endmacro %}
 
-{% macro emaemasc_access_item(form, items, itemId) %}
-    {% if items[itemId] is defined %}
-        {% set item = items[itemId] %}
-        {% set checkboxId = form['item_' ~ itemId].vars.id %}
-        <div class="emaemasc-access-row">
-            <div class="emaemasc-access-title">
-                {{ item.title }}
-            </div>
-            <div class="emaemasc-access-switch">
-                <div class="emaemasc-toggle-wrapper">
-                    {{ form_widget(form['item_' ~ itemId], {
-                        'attr': {
-                            'class': 'emaemasc-toggle-input',
-                            'data-item-id': itemId,
-                            'data-item-name': item.name,
-                            'data-item-title': item.title
-                        }
-                    }) }}
-                </div>
-            </div>
-        </div>
-    {% endif %}
+{% macro emaemasc_access_item(form, name) %}
+    <div class="emaemasc-access-row">
+        {{ form_widget(form['item_' ~ name]) }}
+    </div>
 {% endmacro %}

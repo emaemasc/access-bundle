@@ -35,8 +35,7 @@ class MigrateRolesCommand extends Command
         $newNames = \array_diff($names, $state);
         foreach ($newNames as $name) {
             $role = $this->roleStore->getRole($name);
-            $entity = $this->roleStore->createEntity($role);
-            $this->roleStore->persistRole($entity);
+            $this->roleStore->persistRole($role);
         }
 
         return Command::SUCCESS;

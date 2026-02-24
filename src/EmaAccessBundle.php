@@ -15,6 +15,7 @@ use Ema\AccessBundle\Form\AccessType;
 use Ema\AccessBundle\Group\DefaultAccessGroupConfig;
 use Ema\AccessBundle\Preset\DefaultAccessPresetConfig;
 use Ema\AccessBundle\Role\DefaultAccessRoleStore;
+use Ema\AccessBundle\Security\AccessRoleVoter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -28,14 +29,6 @@ class EmaAccessBundle extends AbstractBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-
-//        $builder->prependExtensionConfig('security', [
-//            'role_hierarchy' => [
-//                'ROLE_ADMIN' => ...
-//                ...
-//            ],
-//        ]);
-
         $builder->prependExtensionConfig('twig', [
             'form_themes' => ['@EmaAccess/form/default.html.twig'],
         ]);
@@ -60,6 +53,9 @@ class EmaAccessBundle extends AbstractBundle
         $services->defaults()->autowire();
         $services->set(MigrateRolesCommand::class)->tag('console.command');
         $services->set(AccessType::class)->tag('form.type');
+        $services->set(AccessRoleVoter::class)
+            ->arg(0, service(AccessRoleStore::class))
+            ->tag('security.voter');
         $services
             ->set(AccessAttributeListener::class)
             ->arg(0, service('security.authorization_checker'))

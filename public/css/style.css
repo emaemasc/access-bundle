@@ -36,7 +36,7 @@
 /* Group Styles */
 .emaemasc-access-group-header {
     background-color: rgba(111,111,111,0.1);
-    padding: 3px 10px;
+    padding: 3px 7px;
     cursor: pointer;
 }
 
@@ -54,57 +54,34 @@
 
 /* Row Styles */
 .emaemasc-access-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 10px;
+    padding: 0 7px;
     transition: background-color 0.2s ease;
 }
 
-.emaemasc-access-title {
-    flex: 1;
+.emaemasc-access-row > div {
     display: flex;
-    flex-direction: column;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
 }
 
-.emaemasc-access-switch {
-    margin-left: 16px;
+.emaemasc-access-row:has(> input) {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
 }
 
-/* Toggle Switch Styles */
-.emaemasc-toggle-wrapper {
-    position: relative;
-    display: inline-block;
+label.emaemasc-input-label {
+    flex: 1;
+    padding: 0;
+    margin: 0;
 }
 
-.emaemasc-toggle-label {
-    display: block;
-    width: 50px;
-    height: 24px;
-    text-indent: -9999px;
-    cursor: pointer;
-    background-color: #ccc;
-    border-radius: 24px;
-    position: relative;
-    transition: background-color 0.3s;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.emaemasc-toggle-input:checked + .emaemasc-toggle-label {
+.emaemasc-input:checked + .emaemasc-label {
     background-color: #4CAF50;
-}
-
-.emaemasc-toggle-switch {
-    display: block;
-    width: 20px;
-    height: 20px;
-    background-color: #fff;
-    border-radius: 50%;
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    transition: left 0.3s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .emaemasc-toggle-input {
