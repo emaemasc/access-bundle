@@ -14,8 +14,10 @@ use Ema\AccessBundle\EventListener\AccessAttributeListener;
 use Ema\AccessBundle\Form\AccessType;
 use Ema\AccessBundle\Group\DefaultAccessGroupConfig;
 use Ema\AccessBundle\Preset\DefaultAccessPresetConfig;
+use Ema\AccessBundle\Role\CachedAccessRoleStore;
 use Ema\AccessBundle\Role\DefaultAccessRoleStore;
 use Ema\AccessBundle\Security\AccessRoleVoter;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -45,8 +47,20 @@ class EmaAccessBundle extends AbstractBundle
                 ->setPublic(true);
         }
         if (!$builder->hasDefinition(AccessRoleStore::class)) {
-            $builder->register(AccessRoleStore::class, DefaultAccessRoleStore::class)
+            $roleStoreDef = $builder->register(AccessRoleStore::class, DefaultAccessRoleStore::class)
                 ->setPublic(true);
+                
+            // Conditionally wrap with cache decorator if cache is available
+            if ($builder->hasDefinition(CacheItemPoolInterface::class)) {
+                $builder->register(self::NAME . '.cached_role_store', CachedAccessRoleStore::class)
+                    ->setPublic(false)
+                    ->setArguments([
+                        $roleStoreDef,
+                        service(CacheItemPoolInterface::class)
+                    ]);
+                    
+                $builder->setAlias(AccessRoleStore::class, self::NAME . '.cached_role_store')->setPublic(true);
+            }
         }
 
         $services = $container->services();
@@ -90,7 +104,20 @@ class EmaAccessBundle extends AbstractBundle
                 if (!$reflector->implementsInterface(AccessRoleStore::class)) {
                     throw new \ErrorException(sprintf('Service "%s" must implement interface "%s"', $reflector->getName(), AccessRoleStore::class));
                 }
-                $container->setAlias(AccessRoleStore::class, $reflector->getName());
+                
+                $serviceName = $reflector->getName();
+                $container->setAlias(AccessRoleStore::class, $serviceName);
+                
+                // If cache is available, wrap the service with the cached decorator
+                if ($container->hasDefinition(CacheItemPoolInterface::class)) {
+                    $cachedServiceId = $serviceName . '.cached';
+                    $container->register($cachedServiceId, CachedAccessRoleStore::class)
+                        ->setDecoratedService(AccessRoleStore::class)
+                        ->setArguments([
+                            service($serviceName . '.inner'),
+                            service(CacheItemPoolInterface::class)
+                        ]);
+                }
             }
         );
 

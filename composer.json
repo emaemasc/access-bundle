@@ -30,7 +30,8 @@
         "symfony/twig-bundle": "^5.4|^6.0|^7.0|^8.0",
         "symfony/validator": "^5.4|^6.0|^7.0|^8.0",
         "twig/extra-bundle": "^3",
-        "twig/twig": "^3"
+        "twig/twig": "^3",
+        "psr/cache": "^1.0|^2.0|^3.0"
     },
     "config": {
         "allow-plugins": {

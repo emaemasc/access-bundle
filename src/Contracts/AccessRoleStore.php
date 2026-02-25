@@ -15,4 +15,9 @@ interface AccessRoleStore
     public function getRoles(): array;
     public function getSuperRoles(): array;
     public function findBy(array $params): array;
+    
+    /**
+     * Clears the role cache if caching is enabled
+     */
+    public function clearCache(): void;
 }

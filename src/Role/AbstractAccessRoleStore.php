@@ -96,4 +96,9 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
     {
         return $this->entityManager->getRepository($this->entityClass)->findBy($params);
     }
+    
+    public function clearCache(): void
+    {
+        // No-op in base implementation
+    }
 }
