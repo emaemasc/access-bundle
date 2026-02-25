@@ -53,6 +53,7 @@
         }
     },
     "scripts": {
+        "test": "vendor/bin/phpunit tests/Unit",
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
