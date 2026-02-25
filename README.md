@@ -88,19 +88,13 @@ Create a custom role store by extending the `AbstractAccessRoleStore`. Note that
 ```php
 use Ema\AccessBundle\Attribute\AsAccessRoleStore;
 use Ema\AccessBundle\Role\AbstractAccessRoleStore;
-use Doctrine\Persistence\ManagerRegistry;
 
 #[AsAccessRoleStore]
 class CustomAccessRoleStore extends AbstractAccessRoleStore
-{
-    public function __construct(ManagerRegistry $managerRegistry)
-    {
-        parent::__construct($managerRegistry);
-    }
-    
+{    
     public function configure(): void
     {
-        // Define additional roles in the configure method rather than constructor
+        // Define additional roles
         $this->addRole('CUSTOM_ROLE', 'Custom Role Title', ['option' => 'value'], 'custom_group', ['preset1']);
     }
     
