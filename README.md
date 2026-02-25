@@ -83,29 +83,42 @@ public function edit(Article $article): Response
 
 ### Custom Access Role Store
 
-Create a custom role store by implementing the `AccessRoleStore` interface:
+Create a custom role store by extending the `AbstractAccessRoleStore`. Note that custom roles should be defined in the `configure()` method rather than the constructor, as the bundle automatically calls `configure()` during container compilation:
 
 ```php
 use Ema\AccessBundle\Attribute\AsAccessRoleStore;
 use Ema\AccessBundle\Role\AbstractAccessRoleStore;
+use Doctrine\Persistence\ManagerRegistry;
 
 #[AsAccessRoleStore]
 class CustomAccessRoleStore extends AbstractAccessRoleStore
 {
-    public function __construct()
+    public function __construct(ManagerRegistry $managerRegistry)
     {
-        $this->setEntityClass(CustomAccessRole::class);
-        $this->setSuperRoles(['ROLE_SUPER_ADMIN']);
-        
-        // Define additional roles programmatically
+        parent::__construct($managerRegistry);
+    }
+    
+    public function configure(): void
+    {
+        // Define additional roles in the configure method rather than constructor
         $this->addRole('CUSTOM_ROLE', 'Custom Role Title', ['option' => 'value'], 'custom_group', ['preset1']);
+    }
+    
+    public function getEntityClass(): string
+    {
+        return CustomAccessRole::class;
+    }
+    
+    public function getSuperRoles(): array
+    {
+        return ['ROLE_SUPER_ADMIN'];
     }
 }
 ```
 
 ### Group and Preset Configuration
 
-Define access groups and presets by implementing the respective interfaces:
+Define access groups and presets by implementing the respective interfaces. Remember to define your groups/presets in the `configure()` method since the bundle automatically calls this method during container compilation:
 
 ```php
 use Ema\AccessBundle\Attribute\AsAccessGroupConfig;
@@ -114,7 +127,7 @@ use Ema\AccessBundle\Group\AbstractAccessGroupConfig;
 #[AsAccessGroupConfig]
 class MyAccessGroupConfig extends AbstractAccessGroupConfig
 {
-    public function __construct()
+    public function configure(): void
     {
         $this->set('users', AccessGroupDto::new('users', 'User Management', 10));
         $this->set('content', AccessGroupDto::new('content', 'Content Management', 20));
@@ -129,7 +142,7 @@ use Ema\AccessBundle\Preset\AbstractAccessPresetConfig;
 #[AsAccessPresetConfig]
 class MyAccessPresetConfig extends AbstractAccessPresetConfig
 {
-    public function __construct()
+    public function configure(): void
     {
         $this->set('admin', AccessPresetDto::new('admin', 'Administrator', 10));
         $this->set('editor', AccessPresetDto::new('editor', 'Editor', 20));
