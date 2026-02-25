@@ -59,13 +59,13 @@ class AccessAttributeListener
         foreach ($methodAttributes as $methodAttribute) {
             $attribute = $methodAttribute->newInstance();
             $subject = $this->getAccessSubject($attribute, $request, $arguments);
-            $this->check(AccessRoleFormatter::from(\get_class($controller[0]), $methodName), $attribute, $subject);
+            $this->check(AccessRoleFormatter::from(\get_class($controllerObject), $methodName), $attribute, $subject);
         }
 
         foreach ($classAttributes as $classAttribute) {
             $attribute = $classAttribute->newInstance();
             $subject = $this->getAccessSubject($attribute, $request, $arguments);
-            $this->check(AccessRoleFormatter::from(\get_class($controller[0])), $attribute, $subject);
+            $this->check(AccessRoleFormatter::from(\get_class($controllerObject)), $attribute, $subject);
         }
     }
 

@@ -5,36 +5,23 @@ namespace Ema\AccessBundle\Role;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
 use Ema\AccessBundle\Dto\AccessRoleDto;
+use Ema\AccessBundle\Entity\AccessRole;
 
 abstract class AbstractAccessRoleStore implements AccessRoleStore
 {
-    protected EntityManagerInterface $entityManager;
-    protected string $entityClass;
-    protected array $superRoles = [];
     protected array $roles = [];
 
-    public function getEntityManager(): EntityManagerInterface
-    {
-        return $this->entityManager;
+    public function __construct(
+        private readonly ManagerRegistry $managerRegistry,
+    ) {
     }
 
-    public function setEntityManager(EntityManagerInterface $entityManager): self
+    public function configure(): void
     {
-        $this->entityManager = $entityManager;
-        return $this;
-    }
 
-    public function getEntityClass(): string
-    {
-        return $this->entityClass;
-    }
-
-    public function setEntityClass(string $entityClass): self
-    {
-        $this->entityClass = $entityClass;
-        return $this;
     }
 
     public function getRoles(): array
@@ -59,7 +46,8 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
 
     public function createEntity(AccessRoleDto $role): object
     {
-        $entity = new $this->entityClass();
+        $entityClass = $this->getEntityClass();
+        $entity = new $entityClass();
         $entity->setName($role->getName())
             ->setTitle($role->getTitle())
             ->setOptions($role->options)
@@ -69,32 +57,22 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
 
     public function createQueryBuilder(string $alias = 'entity'): \Doctrine\ORM\QueryBuilder
     {
-        return $this->entityManager
-            ->getRepository($this->entityClass)
-            ->createQueryBuilder($alias);
+        $em = $this->managerRegistry->getManagerForClass($this->getEntityClass());
+        return $em->getRepository($this->getEntityClass())->createQueryBuilder($alias);
     }
 
     public function persistRole(AccessRoleDto $role): void
     {
+        $em = $this->managerRegistry->getManagerForClass($this->getEntityClass());
         $entity = $this->createEntity($role);
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
-    }
-
-    public function getSuperRoles(): array
-    {
-        return $this->superRoles;
-    }
-
-    public function setSuperRoles(array $superRoles): self
-    {
-        $this->superRoles = $superRoles;
-        return $this;
+        $em->persist($entity);
+        $em->flush();
     }
 
     public function findBy(array $params): array
     {
-        return $this->entityManager->getRepository($this->entityClass)->findBy($params);
+        $em = $this->managerRegistry->getManagerForClass($this->getEntityClass());
+        return $em->getRepository($this->getEntityClass())->findBy($params);
     }
     
     public function clearCache(): void

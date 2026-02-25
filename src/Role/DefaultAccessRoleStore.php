@@ -2,9 +2,17 @@
 
 namespace Ema\AccessBundle\Role;
 
+use Ema\AccessBundle\Entity\AccessRole;
+
 class DefaultAccessRoleStore extends AbstractAccessRoleStore
 {
-    public function __construct() {
-        $this->setEntityClass(\Ema\AccessBundle\Entity\AccessRole::class);
+    public function getEntityClass(): string
+    {
+        return AccessRole::class;
+    }
+
+    public function getSuperRoles(): array
+    {
+        return [];
     }
 }

@@ -22,6 +22,11 @@ class AccessCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container): void
     {
         $roleStore = $container->findDefinition(AccessRoleStore::class);
+        $groupConfig = $container->findDefinition(AccessGroupConfig::class);
+        $presetConfig = $container->findDefinition(AccessPresetConfig::class);
+        $roleStore->addMethodCall('configure');
+        $groupConfig->addMethodCall('configure');
+        $presetConfig->addMethodCall('configure');
 
         foreach ($container->getDefinitions() as $id => $definition) {
             if ($definition->getClass() === null) {

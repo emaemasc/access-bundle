@@ -9,11 +9,13 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 interface AccessRoleStore
 {
     public function getEntityClass(): string;
+
+    public function getSuperRoles(): array;
     /**
      * @return AccessRoleDto[]
      */
     public function getRoles(): array;
-    public function getSuperRoles(): array;
+
     public function findBy(array $params): array;
     
     /**

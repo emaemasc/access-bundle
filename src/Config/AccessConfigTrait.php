@@ -9,6 +9,11 @@ trait AccessConfigTrait
 {
     private array $items = [];
 
+    public function configure(): void
+    {
+
+    }
+
     public function all(): array
     {
         return $this->items;
