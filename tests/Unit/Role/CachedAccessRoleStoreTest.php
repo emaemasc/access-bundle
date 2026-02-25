@@ -5,11 +5,13 @@ namespace Ema\AccessBundle\Tests\Unit\Role;
 use Ema\AccessBundle\Role\CachedAccessRoleStore;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
 use Ema\AccessBundle\Dto\AccessRoleDto;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class CachedAccessRoleStoreTest extends TestCase
 {
     private AccessRoleStore|MockObject $decoratedStore;

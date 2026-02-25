@@ -4,11 +4,13 @@ namespace Ema\AccessBundle\Tests\Unit\Security;
 
 use Ema\AccessBundle\Security\AccessRoleVoter;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class AccessRoleVoterTest extends TestCase
 {
     private MockObject|AccessRoleStore $roleStore;
@@ -40,12 +42,10 @@ class AccessRoleVoterTest extends TestCase
     public function testVoteWithNonStringAttribute(): void
     {
         $token = $this->createMock(TokenInterface::class);
-        $token->expects($this->any())
-              ->method('getRoleNames')
+        $token->method('getRoleNames')
               ->willReturn(['ROLE_USER']);
               
-        $this->roleStore->expects($this->any())
-                        ->method('getSuperRoles')
+        $this->roleStore->method('getSuperRoles')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, [123, 'EAB_VALID_ROLE']);
@@ -58,12 +58,10 @@ class AccessRoleVoterTest extends TestCase
     public function testVoteWithUnrecognizedAttribute(): void
     {
         $token = $this->createMock(TokenInterface::class);
-        $token->expects($this->any())
-              ->method('getRoleNames')
+        $token->method('getRoleNames')
               ->willReturn(['ROLE_USER']);
               
-        $this->roleStore->expects($this->any())
-                        ->method('getSuperRoles')
+        $this->roleStore->method('getSuperRoles')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, ['EAB_UNRECOGNIZED_ROLE']);
@@ -74,12 +72,10 @@ class AccessRoleVoterTest extends TestCase
     public function testVoteWithGrantedRole(): void
     {
         $token = $this->createMock(TokenInterface::class);
-        $token->expects($this->any())
-              ->method('getRoleNames')
+        $token->method('getRoleNames')
               ->willReturn(['EAB_GRANTED_ROLE']);
               
-        $this->roleStore->expects($this->any())
-                        ->method('getSuperRoles')
+        $this->roleStore->method('getSuperRoles')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, ['EAB_GRANTED_ROLE']);
@@ -90,12 +86,10 @@ class AccessRoleVoterTest extends TestCase
     public function testVoteWithSuperRole(): void
     {
         $token = $this->createMock(TokenInterface::class);
-        $token->expects($this->any())
-              ->method('getRoleNames')
+        $token->method('getRoleNames')
               ->willReturn(['ROLE_SUPER_ADMIN']);
               
-        $this->roleStore->expects($this->any())
-                        ->method('getSuperRoles')
+        $this->roleStore->method('getSuperRoles')
                         ->willReturn(['ROLE_SUPER_ADMIN']);
         
         $result = $this->voter->vote($token, null, ['EAB_SOME_ROLE']);
@@ -106,12 +100,10 @@ class AccessRoleVoterTest extends TestCase
     public function testVoteWithMultipleAttributes(): void
     {
         $token = $this->createMock(TokenInterface::class);
-        $token->expects($this->any())
-              ->method('getRoleNames')
+        $token->method('getRoleNames')
               ->willReturn(['EAB_GRANTED_ROLE']);
               
-        $this->roleStore->expects($this->any())
-                        ->method('getSuperRoles')
+        $this->roleStore->method('getSuperRoles')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, ['EAB_DENIED_ROLE', 'EAB_GRANTED_ROLE']);

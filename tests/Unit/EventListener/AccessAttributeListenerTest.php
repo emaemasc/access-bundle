@@ -6,6 +6,7 @@ use Ema\AccessBundle\EventListener\AccessAttributeListener;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
 use Ema\AccessBundle\Attribute\Access;
 use Ema\AccessBundle\Role\AccessRoleFormatter;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,6 +16,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\ExpressionLanguage\Expression;
 
+#[AllowMockObjectsWithoutExpectations]
 class AccessAttributeListenerTest extends TestCase
 {
     private MockObject|AuthorizationCheckerInterface $authChecker;
@@ -76,14 +78,12 @@ class AccessAttributeListenerTest extends TestCase
             public function testAction(): void {}
         };
         $controller = [$controllerObject, 'testAction'];
-        $kernel = $this->createMock(HttpKernelInterface::class);
+        $kernel = $this->createMock(HttpKernelInterface::class); // 2 assert
         
         $event = new ControllerArgumentsEvent($kernel, $controller, [], $request, HttpKernelInterface::MAIN_REQUEST);
         
         // Should return early due to super role
         $this->listener->__invoke($event);
-        
-        $this->expectNotToPerformAssertions();
     }
 
     public function testInvokeWithGrantedPermission(): void
@@ -111,8 +111,6 @@ class AccessAttributeListenerTest extends TestCase
         $event = new ControllerArgumentsEvent($kernel, $controller, [], $request, HttpKernelInterface::MAIN_REQUEST);
         
         $this->listener->__invoke($event);
-        
-        $this->expectNotToPerformAssertions();
     }
 
     public function testInvokeWithDeniedPermissionThrowsException(): void
