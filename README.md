@@ -106,7 +106,7 @@ class CustomAccessRoleStore extends AbstractAccessRoleStore
     public function getRoleHierarchy(): array
     {
         return [
-            'ROLE_SUPER_ADMIN' => '/.*/',  // Regex to match all EAB roles
+            'ROLE_SUPER_ADMIN' => '/PREFIX_.*/',  // Regex to match all PREFIX roles
         ];
     }
 }
@@ -120,8 +120,8 @@ The bundle supports flexible role hierarchies using either explicit role lists o
 public function getRoleHierarchy(): array
 {
     return [
-        'ROLE_SUPER_ADMIN' => '/EAB_.*/',  // Regex pattern matching
-        'ROLE_ADMIN' => ['EAB_MANAGE_USERS', 'EAB_MANAGE_CONTENT'],  // Explicit roles
+        'ROLE_SUPER_ADMIN' => '/PREFIX_.*/',  // Regex pattern matching
+        'ROLE_ADMIN' => ['PREFIX_MANAGE_USERS', 'PREFIX_MANAGE_CONTENT'],  // Explicit roles
     ];
 }
 ```

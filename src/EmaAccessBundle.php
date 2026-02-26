@@ -21,6 +21,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\HttpKernel\KernelEvents;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -38,42 +39,9 @@ class EmaAccessBundle extends AbstractBundle
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (!$builder->hasDefinition(AccessGroupConfig::class)) {
-            $builder->register(AccessGroupConfig::class, DefaultAccessGroupConfig::class)
-                ->setPublic(true);
-        }
-        if (!$builder->hasDefinition(AccessPresetConfig::class)) {
-            $builder->register(AccessPresetConfig::class, DefaultAccessPresetConfig::class)
-                ->setPublic(true);
-        }
-        if (!$builder->hasDefinition(AccessRoleStore::class)) {
-            $roleStoreDef = $builder->register(AccessRoleStore::class, DefaultAccessRoleStore::class)
-                ->setPublic(true);
-                
-            // Conditionally wrap with cache decorator if cache is available
-            if ($builder->hasDefinition(CacheItemPoolInterface::class)) {
-                $builder->register(self::NAME . '.cached_role_store', CachedAccessRoleStore::class)
-                    ->setPublic(false)
-                    ->setArguments([
-                        $roleStoreDef,
-                        service(CacheItemPoolInterface::class)
-                    ]);
-                    
-                $builder->setAlias(AccessRoleStore::class, self::NAME . '.cached_role_store')->setPublic(true);
-            }
-        }
-
-        $services = $container->services();
-        $services->defaults()->autowire();
-        $services->set(MigrateRolesCommand::class)->tag('console.command');
-        $services->set(AccessType::class)->tag('form.type');
-        $services->set(AccessRoleVoter::class)
-            ->arg(0, service(AccessRoleStore::class))
-            ->tag('security.voter');
-        $services
-            ->set(AccessAttributeListener::class)
-            ->arg(0, service('security.authorization_checker'))
-            ->tag('kernel.event_listener', ['event' => KernelEvents::CONTROLLER_ARGUMENTS]);
+        $this->registerDefaultServices($builder);
+        $this->setupCaching($builder);
+        $this->registerBundleServices($container);
     }
 
     public function build(ContainerBuilder $container): void
@@ -122,5 +90,61 @@ class EmaAccessBundle extends AbstractBundle
         );
 
         $container->addCompilerPass(new AccessCompilerPass());
+    }
+
+    private function registerDefaultServices(ContainerBuilder $builder): void
+    {
+        if (!$builder->hasDefinition(AccessGroupConfig::class)) {
+            $builder->register(AccessGroupConfig::class, DefaultAccessGroupConfig::class)
+                ->setPublic(true);
+        }
+
+        if (!$builder->hasDefinition(AccessPresetConfig::class)) {
+            $builder->register(AccessPresetConfig::class, DefaultAccessPresetConfig::class)
+                ->setPublic(true);
+        }
+
+        if (!$builder->hasDefinition(AccessRoleStore::class)) {
+            $builder->register(AccessRoleStore::class, DefaultAccessRoleStore::class)
+                ->setPublic(true);
+        }
+    }
+
+    private function setupCaching(ContainerBuilder $builder): void
+    {
+        // Only apply caching if cache pool is available
+        if ($builder->hasDefinition(CacheItemPoolInterface::class)) {
+            $roleStoreDefinition = $builder->getDefinition(AccessRoleStore::class);
+
+            // Create a decorated version with caching
+            $cachedRoleStoreDefinition = new Definition(
+                CachedAccessRoleStore::class,
+                [
+                    $roleStoreDefinition,
+                    new Reference(CacheItemPoolInterface::class)
+                ]
+            );
+
+            // Replace the original service with the cached version
+            $builder->setDefinition(self::NAME . '.cached_role_store', $cachedRoleStoreDefinition);
+            $builder->setAlias(AccessRoleStore::class, self::NAME . '.cached_role_store')->setPublic(true);
+        }
+    }
+
+    private function registerBundleServices(ContainerConfigurator $container): void
+    {
+        $services = $container->services();
+        $services->defaults()->autowire();
+
+        $services->set(MigrateRolesCommand::class)->tag('console.command');
+        $services->set(AccessType::class)->tag('form.type');
+
+        $services->set(AccessRoleVoter::class)
+            ->arg(0, service(AccessRoleStore::class))
+            ->tag('security.voter');
+
+        $services->set(AccessAttributeListener::class)
+            ->arg(0, service('security.authorization_checker'))
+            ->tag('kernel.event_listener', ['event' => KernelEvents::CONTROLLER_ARGUMENTS]);
     }
 }

@@ -30,7 +30,7 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
     public function getRoleHierarchy(): array
     {
         return [
-            'ROLE_SUPER_ADMIN' => '/.*/',
+            'ROLE_SUPER_ADMIN' => "/{$this->getPrefix()}.*/",
         ];
     }
 
