@@ -10,9 +10,4 @@ class DefaultAccessRoleStore extends AbstractAccessRoleStore
     {
         return AccessRole::class;
     }
-
-    public function getSuperRoles(): array
-    {
-        return [];
-    }
 }

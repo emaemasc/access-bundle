@@ -118,65 +118,6 @@ class CachedAccessRoleStoreTest extends TestCase
         $this->assertSame($expectedRoles, $result);
     }
 
-    public function testGetSuperRolesReturnsFromCacheWhenAvailable(): void
-    {
-        $expectedSuperRoles = ['ROLE_SUPER_ADMIN'];
-
-        $cacheItem = $this->createMock(CacheItemInterface::class);
-        $cacheItem->expects($this->once())
-            ->method('isHit')
-            ->willReturn(true);
-        $cacheItem->expects($this->once())
-            ->method('get')
-            ->willReturn($expectedSuperRoles);
-
-        $this->cachePool->expects($this->once())
-            ->method('getItem')
-            ->with('ema.access_bundle.super_roles')
-            ->willReturn($cacheItem);
-
-        $this->decoratedStore->expects($this->never())
-            ->method('getSuperRoles'); // Should not be called if cache hit
-
-        $result = $this->cachedStore->getSuperRoles();
-
-        $this->assertSame($expectedSuperRoles, $result);
-    }
-
-    public function testGetSuperRolesFetchesFromStoreAndCachesWhenNotInCache(): void
-    {
-        $expectedSuperRoles = ['ROLE_SUPER_ADMIN'];
-
-        $cacheItem = $this->createMock(CacheItemInterface::class);
-        $cacheItem->expects($this->once())
-            ->method('isHit')
-            ->willReturn(false);
-        $cacheItem->expects($this->once())
-            ->method('set')
-            ->with($expectedSuperRoles)
-            ->willReturnSelf();
-        $cacheItem->expects($this->once())
-            ->method('expiresAfter')
-            ->with(3600)
-            ->willReturnSelf();
-
-        $this->cachePool->expects($this->once())
-            ->method('getItem')
-            ->with('ema.access_bundle.super_roles')
-            ->willReturn($cacheItem);
-        $this->cachePool->expects($this->once())
-            ->method('save')
-            ->with($cacheItem);
-
-        $this->decoratedStore->expects($this->once())
-            ->method('getSuperRoles')
-            ->willReturn($expectedSuperRoles);
-
-        $result = $this->cachedStore->getSuperRoles();
-
-        $this->assertSame($expectedSuperRoles, $result);
-    }
-
     public function testFindByDelegatesToDecoratedStore(): void
     {
         $params = ['name' => 'test'];
@@ -194,12 +135,9 @@ class CachedAccessRoleStoreTest extends TestCase
 
     public function testClearCacheRemovesCacheItems(): void
     {
-        $this->cachePool->expects($this->exactly(2))
+        $this->cachePool->expects($this->exactly(1))
             ->method('deleteItem')
-            ->with($this->logicalOr(
-                'ema.access_bundle.roles',
-                'ema.access_bundle.super_roles'
-            ));
+            ->with('ema.access_bundle.roles');
 
         $this->cachedStore->clearCache();
     }
@@ -208,5 +146,42 @@ class CachedAccessRoleStoreTest extends TestCase
     {
         $this->assertInstanceOf(CachedAccessRoleStore::class, $this->cachedStore->setCachePrefix('test.'));
         $this->assertInstanceOf(CachedAccessRoleStore::class, $this->cachedStore->setDefaultTtl(7200));
+    }
+    
+    public function testGetPrefixDelegatesToDecoratedStore(): void
+    {
+        $this->decoratedStore->expects($this->once())
+            ->method('getPrefix')
+            ->willReturn('TEST_');
+
+        $result = $this->cachedStore->getPrefix();
+
+        $this->assertEquals('TEST_', $result);
+    }
+
+    public function testGetRoleHierarchyDelegatesToDecoratedStore(): void
+    {
+        $expectedHierarchy = ['ROLE_SUPER_ADMIN' => '/.*/'];
+        
+        $this->decoratedStore->expects($this->once())
+            ->method('getRoleHierarchy')
+            ->willReturn($expectedHierarchy);
+
+        $result = $this->cachedStore->getRoleHierarchy();
+
+        $this->assertSame($expectedHierarchy, $result);
+    }
+
+    public function testGetRoleNamesDelegatesToDecoratedStore(): void
+    {
+        $expectedNames = ['ROLE_TEST_1', 'ROLE_TEST_2'];
+        
+        $this->decoratedStore->expects($this->once())
+            ->method('getRoleNames')
+            ->willReturn($expectedNames);
+
+        $result = $this->cachedStore->getRoleNames();
+
+        $this->assertSame($expectedNames, $result);
     }
 }

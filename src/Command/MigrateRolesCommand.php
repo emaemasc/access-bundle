@@ -19,8 +19,9 @@ class MigrateRolesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $names = \array_keys($this->roleStore->getRoles());
+        $names = $this->roleStore->getRoleNames();
         $qb = $this->roleStore->createQueryBuilder();
+
         $qb->delete()
             ->where($qb->expr()->notIn('entity.name', ':names'))
             ->setParameter('names', $names)
@@ -32,6 +33,7 @@ class MigrateRolesCommand extends Command
             ->select('entity.name')
             ->getQuery()
             ->getSingleColumnResult();
+
         $newNames = \array_diff($names, $state);
         foreach ($newNames as $name) {
             $role = $this->roleStore->getRole($name);

@@ -6,7 +6,7 @@ A powerful Symfony bundle for implementing attribute-based access control in you
 
 - **Attribute-based Security**: Secure controllers and methods using PHP attributes like `#[Access]`, `#[AccessGroup]`, and `#[AccessPreset]`
 - **Automatic Role Registration**: Roles are automatically registered during compilation based on your attributes
-- **Flexible Permission System**: Supports role hierarchies with super roles and fine-grained access control
+- **Flexible Permission System**: Supports role hierarchies with advanced role inheritance and fine-grained access control
 - **Database Persistence**: Roles stored in database with migration command for synchronization
 - **Form Integration**: Built-in form type for managing access roles with groups and presets
 - **Interactive UI**: Frontend components with JavaScript for easy role management
@@ -103,44 +103,26 @@ class CustomAccessRoleStore extends AbstractAccessRoleStore
         return CustomAccessRole::class;
     }
     
-    public function getSuperRoles(): array
+    public function getRoleHierarchy(): array
     {
-        return ['ROLE_SUPER_ADMIN'];
+        return [
+            'ROLE_SUPER_ADMIN' => '/.*/',  // Regex to match all EAB roles
+        ];
     }
 }
 ```
 
-### Group and Preset Configuration
+### Role Hierarchy Configuration
 
-Define access groups and presets by implementing the respective interfaces. Remember to define your groups/presets in the `configure()` method since the bundle automatically calls this method during container compilation:
-
-```php
-use Ema\AccessBundle\Attribute\AsAccessGroupConfig;
-use Ema\AccessBundle\Group\AbstractAccessGroupConfig;
-
-#[AsAccessGroupConfig]
-class MyAccessGroupConfig extends AbstractAccessGroupConfig
-{
-    public function configure(): void
-    {
-        $this->set('users', AccessGroupDto::new('users', 'User Management', 10));
-        $this->set('content', AccessGroupDto::new('content', 'Content Management', 20));
-    }
-}
-```
+The bundle supports flexible role hierarchies using either explicit role lists or regular expressions:
 
 ```php
-use Ema\AccessBundle\Attribute\AsAccessPresetConfig;
-use Ema\AccessBundle\Preset\AbstractAccessPresetConfig;
-
-#[AsAccessPresetConfig]
-class MyAccessPresetConfig extends AbstractAccessPresetConfig
+public function getRoleHierarchy(): array
 {
-    public function configure(): void
-    {
-        $this->set('admin', AccessPresetDto::new('admin', 'Administrator', 10));
-        $this->set('editor', AccessPresetDto::new('editor', 'Editor', 20));
-    }
+    return [
+        'ROLE_SUPER_ADMIN' => '/EAB_.*/',  // Regex pattern matching
+        'ROLE_ADMIN' => ['EAB_MANAGE_USERS', 'EAB_MANAGE_CONTENT'],  // Explicit roles
+    ];
 }
 ```
 
@@ -148,7 +130,7 @@ class MyAccessPresetConfig extends AbstractAccessPresetConfig
 
 The bundle includes a caching layer to improve performance in high-traffic applications. Caching is implemented using a decorator pattern that wraps the role store with caching functionality when Symfony's Cache component is available.
 
-By default, caching is automatically enabled when a PSR-6 compatible cache pool is available in the service container. The cache stores roles and super roles with a default TTL of 1 hour.
+By default, caching is automatically enabled when a PSR-6 compatible cache pool is available in the service container. The cache stores roles with a default TTL of 1 hour.
 
 To customize caching behavior, you can:
 
@@ -207,6 +189,7 @@ bin/console emaemasc:access:migrate
 This command will:
 - Create any new roles that don't exist in the database
 - Remove roles that are no longer defined in your code
+- Update role names based on your role store configuration
 
 ## Configuration
 

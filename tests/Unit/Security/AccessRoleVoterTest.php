@@ -24,11 +24,17 @@ class AccessRoleVoterTest extends TestCase
 
     public function testSupportsAttributeWithValidPrefix(): void
     {
+        $this->roleStore->method('getPrefix')
+            ->willReturn('EAB_');
+            
         $this->assertTrue($this->voter->supportsAttribute('EAB_SOME_ROLE'));
     }
 
     public function testSupportsAttributeWithoutValidPrefix(): void
     {
+        $this->roleStore->method('getPrefix')
+            ->willReturn('EAB_');
+            
         $this->assertFalse($this->voter->supportsAttribute('INVALID_PREFIX_ROLE'));
     }
 
@@ -45,14 +51,13 @@ class AccessRoleVoterTest extends TestCase
         $token->method('getRoleNames')
               ->willReturn(['ROLE_USER']);
               
-        $this->roleStore->method('getSuperRoles')
-                        ->willReturn([]);
+        $this->roleStore->method('getPrefix')
+                        ->willReturn('EAB_');
         
-        $result = $this->voter->vote($token, null, [123, 'EAB_VALID_ROLE']);
+        $result = $this->voter->vote($token, null, [123, 'INVALID_PREFIX_ROLE']);
         
-        // The voter should abstain when encountering non-string attributes
-        // It will process the valid string attribute 'EAB_VALID_ROLE' but deny if not in roles
-        $this->assertContains($result, [VoterInterface::ACCESS_ABSTAIN, VoterInterface::ACCESS_DENIED]);
+        // The voter should abstain when encountering non-string attributes or attributes with invalid prefix
+        $this->assertEquals(VoterInterface::ACCESS_ABSTAIN, $result);
     }
 
     public function testVoteWithUnrecognizedAttribute(): void
@@ -61,7 +66,11 @@ class AccessRoleVoterTest extends TestCase
         $token->method('getRoleNames')
               ->willReturn(['ROLE_USER']);
               
-        $this->roleStore->method('getSuperRoles')
+        $this->roleStore->method('getPrefix')
+                        ->willReturn('EAB_');
+        $this->roleStore->method('getRoleNames')
+                        ->willReturn(['EAB_USER_ROLE']);
+        $this->roleStore->method('getRoleHierarchy')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, ['EAB_UNRECOGNIZED_ROLE']);
@@ -75,7 +84,11 @@ class AccessRoleVoterTest extends TestCase
         $token->method('getRoleNames')
               ->willReturn(['EAB_GRANTED_ROLE']);
               
-        $this->roleStore->method('getSuperRoles')
+        $this->roleStore->method('getPrefix')
+                        ->willReturn('EAB_');
+        $this->roleStore->method('getRoleNames')
+                        ->willReturn(['EAB_GRANTED_ROLE']);
+        $this->roleStore->method('getRoleHierarchy')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, ['EAB_GRANTED_ROLE']);
@@ -89,8 +102,17 @@ class AccessRoleVoterTest extends TestCase
         $token->method('getRoleNames')
               ->willReturn(['ROLE_SUPER_ADMIN']);
               
-        $this->roleStore->method('getSuperRoles')
-                        ->willReturn(['ROLE_SUPER_ADMIN']);
+        $this->roleStore->method('getPrefix')
+                        ->willReturn('EAB_');
+        $this->roleStore->method('getRoleNames')
+                        ->willReturn(['EAB_SOME_ROLE']); // Available EAB roles for matching
+        $this->roleStore->method('getRoleHierarchy')
+                        ->willReturn([
+                            'ROLE_SUPER_ADMIN' => '/.*/'  // This regex should match all EAB roles
+                        ]);
+        
+        // Rebuild the voter to pick up the mocked values
+        $this->voter = new AccessRoleVoter($this->roleStore);
         
         $result = $this->voter->vote($token, null, ['EAB_SOME_ROLE']);
         
@@ -103,7 +125,11 @@ class AccessRoleVoterTest extends TestCase
         $token->method('getRoleNames')
               ->willReturn(['EAB_GRANTED_ROLE']);
               
-        $this->roleStore->method('getSuperRoles')
+        $this->roleStore->method('getPrefix')
+                        ->willReturn('EAB_');
+        $this->roleStore->method('getRoleNames')
+                        ->willReturn(['EAB_GRANTED_ROLE', 'EAB_DENIED_ROLE']);
+        $this->roleStore->method('getRoleHierarchy')
                         ->willReturn([]);
         
         $result = $this->voter->vote($token, null, ['EAB_DENIED_ROLE', 'EAB_GRANTED_ROLE']);

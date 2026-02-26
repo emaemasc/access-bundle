@@ -3,7 +3,6 @@
 namespace Ema\AccessBundle\EventListener;
 
 use Ema\AccessBundle\Attribute\Access;
-use Ema\AccessBundle\Contracts\AccessRoleStore;
 use Ema\AccessBundle\Role\AccessRoleFormatter;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\ExpressionLanguage\Expression;
@@ -21,7 +20,6 @@ class AccessAttributeListener
 {
     public function __construct(
         private readonly AuthorizationCheckerInterface $authChecker,
-        private readonly AccessRoleStore               $roleStore,
         private ?ExpressionLanguage                    $expressionLanguage = null,
     ) {
     }
@@ -35,12 +33,6 @@ class AccessAttributeListener
     {
         if (!\is_array($event->getController()) || empty($event->getAttributes(Access::class))) {
             return;
-        }
-
-        foreach ($this->roleStore->getSuperRoles() as $superRole) {
-            if ($this->authChecker->isGranted($superRole)) {
-                return;
-            }
         }
 
         $controller = $event->getController();

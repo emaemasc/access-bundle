@@ -2,8 +2,6 @@
 
 namespace Ema\AccessBundle\Role;
 
-use Doctrine\DBAL\ArrayParameterType;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
@@ -22,6 +20,18 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
     public function configure(): void
     {
 
+    }
+
+    public function getPrefix(): string
+    {
+        return 'EAB_';
+    }
+
+    public function getRoleHierarchy(): array
+    {
+        return [
+            'ROLE_SUPER_ADMIN' => '/.*/',
+        ];
     }
 
     public function getRoles(): array
@@ -44,7 +54,7 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
         $this->roles[$name] = new AccessRoleDto($name, $title, $options, $group, $presets);
     }
 
-    public function createEntity(AccessRoleDto $role): object
+    public function createEntity(AccessRoleDto $role): AccessRole
     {
         $entityClass = $this->getEntityClass();
         $entity = new $entityClass();
@@ -55,24 +65,30 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
         return $entity;
     }
 
+    public function getEntityManager(): EntityManagerInterface
+    {
+        return $this->managerRegistry->getManagerForClass($this->getEntityClass());
+    }
+
     public function createQueryBuilder(string $alias = 'entity'): \Doctrine\ORM\QueryBuilder
     {
-        $em = $this->managerRegistry->getManagerForClass($this->getEntityClass());
-        return $em->getRepository($this->getEntityClass())->createQueryBuilder($alias);
+        return $this->getEntityManager()
+            ->getRepository($this->getEntityClass())
+            ->createQueryBuilder($alias);
     }
 
     public function persistRole(AccessRoleDto $role): void
     {
-        $em = $this->managerRegistry->getManagerForClass($this->getEntityClass());
         $entity = $this->createEntity($role);
-        $em->persist($entity);
-        $em->flush();
+        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()->flush();
     }
 
     public function findBy(array $params): array
     {
-        $em = $this->managerRegistry->getManagerForClass($this->getEntityClass());
-        return $em->getRepository($this->getEntityClass())->findBy($params);
+        return $this->getEntityManager()
+            ->getRepository($this->getEntityClass())
+            ->findBy($params);
     }
     
     public function clearCache(): void

@@ -15,19 +15,18 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\ExpressionLanguage\Expression;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 #[AllowMockObjectsWithoutExpectations]
 class AccessAttributeListenerTest extends TestCase
 {
     private MockObject|AuthorizationCheckerInterface $authChecker;
-    private MockObject|AccessRoleStore $roleStore;
     private AccessAttributeListener $listener;
 
     protected function setUp(): void
     {
         $this->authChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $this->roleStore = $this->createMock(AccessRoleStore::class);
-        $this->listener = new AccessAttributeListener($this->authChecker, $this->roleStore);
+        $this->listener = new AccessAttributeListener($this->authChecker);
     }
 
     public function testInvokeWithNoControllerArray(): void
@@ -63,13 +62,11 @@ class AccessAttributeListenerTest extends TestCase
 
     public function testInvokeWithSuperRole(): void
     {
-        $this->roleStore->expects($this->once())
-            ->method('getSuperRoles')
-            ->willReturn(['ROLE_SUPER_ADMIN']);
-
+        // In the new implementation, super roles are handled by the voter,
+        // so the listener doesn't check for super roles anymore.
+        // But we still need to mock the auth checker to grant access
         $this->authChecker->expects($this->once())
             ->method('isGranted')
-            ->with('ROLE_SUPER_ADMIN')
             ->willReturn(true);
 
         $request = new Request();
@@ -78,20 +75,16 @@ class AccessAttributeListenerTest extends TestCase
             public function testAction(): void {}
         };
         $controller = [$controllerObject, 'testAction'];
-        $kernel = $this->createMock(HttpKernelInterface::class); // 2 assert
+        $kernel = $this->createMock(HttpKernelInterface::class);
         
         $event = new ControllerArgumentsEvent($kernel, $controller, [], $request, HttpKernelInterface::MAIN_REQUEST);
         
-        // Should return early due to super role
+        // Should not throw an exception
         $this->listener->__invoke($event);
     }
 
     public function testInvokeWithGrantedPermission(): void
     {
-        $this->roleStore->expects($this->once())
-            ->method('getSuperRoles')
-            ->willReturn([]);
-
         $controllerObject = new class() {
             #[Access(title: "Test Action")]
             public function testAction(): void {}
@@ -115,10 +108,6 @@ class AccessAttributeListenerTest extends TestCase
 
     public function testInvokeWithDeniedPermissionThrowsException(): void
     {
-        $this->roleStore->expects($this->once())
-            ->method('getSuperRoles')
-            ->willReturn([]);
-
         $controllerObject = new class() {
             #[Access(title: "Test Action")]
             public function testAction(): void {}

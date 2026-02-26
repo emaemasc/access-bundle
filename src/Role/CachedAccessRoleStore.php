@@ -2,10 +2,12 @@
 
 namespace Ema\AccessBundle\Role;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
 use Ema\AccessBundle\Dto\AccessRoleDto;
+use Ema\AccessBundle\Entity\AccessRole;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\CacheItemInterface;
 
 /**
  * Decorator that adds caching capabilities to an existing AccessRoleStore
@@ -17,17 +19,11 @@ class CachedAccessRoleStore implements AccessRoleStore
     
     // Internal cache to avoid repeated cache lookups during the same request
     private ?array $cachedRoles = null;
-    private ?array $cachedSuperRoles = null;
 
     public function __construct(
         private readonly AccessRoleStore         $decoratedStore,
         private readonly ?CacheItemPoolInterface $cachePool = null
     ) {
-    }
-
-    public function getEntityClass(): string
-    {
-        return $this->decoratedStore->getEntityClass();
     }
 
     public function getRoles(): array
@@ -53,45 +49,10 @@ class CachedAccessRoleStore implements AccessRoleStore
         return $this->cachedRoles = $roles;
     }
 
-    public function getSuperRoles(): array
-    {
-        if ($this->cachedSuperRoles !== null) {
-            return $this->cachedSuperRoles;
-        }
-        
-        if (!$this->cachePool) {
-            return $this->cachedSuperRoles = $this->decoratedStore->getSuperRoles();
-        }
-        
-        $cacheKey = $this->cacheKeyPrefix . 'super_roles';
-        $cacheItem = $this->cachePool->getItem($cacheKey);
-        
-        if ($cacheItem->isHit()) {
-            return $this->cachedSuperRoles = $cacheItem->get();
-        }
-        
-        $superRoles = $this->decoratedStore->getSuperRoles();
-        $this->cachePool->save($cacheItem->set($superRoles)->expiresAfter($this->defaultTtl));
-        
-        return $this->cachedSuperRoles = $superRoles;
-    }
-
-    public function findBy(array $params): array
-    {
-        return $this->decoratedStore->findBy($params);
-    }
-
     public function clearCache(): void
     {
-        if ($this->cachePool) {
-            // Clear all related cache entries
-            $this->cachePool->deleteItem($this->cacheKeyPrefix . 'roles');
-            $this->cachePool->deleteItem($this->cacheKeyPrefix . 'super_roles');
-        }
-        
-        // Reset internal cache
+        $this->cachePool?->deleteItem($this->cacheKeyPrefix . 'roles');
         $this->cachedRoles = null;
-        $this->cachedSuperRoles = null;
     }
 
     public function setCachePrefix(string $prefix): self
@@ -114,5 +75,55 @@ class CachedAccessRoleStore implements AccessRoleStore
     public function getDecoratedStore(): AccessRoleStore
     {
         return $this->decoratedStore;
+    }
+
+    public function getEntityClass(): string
+    {
+        return $this->decoratedStore->getEntityClass();
+    }
+
+    public function getPrefix(): string
+    {
+        return $this->decoratedStore->getPrefix();
+    }
+
+    public function getRoleHierarchy(): array
+    {
+        return $this->decoratedStore->getRoleHierarchy();
+    }
+
+    public function getRoleNames(): array
+    {
+        return $this->decoratedStore->getRoleNames();
+    }
+
+    public function getRole(string $name): ?AccessRoleDto
+    {
+        return $this->decoratedStore->getRole($name);
+    }
+
+    public function getEntityManager(): EntityManagerInterface
+    {
+        return $this->decoratedStore->getEntityManager();
+    }
+
+    public function createQueryBuilder(string $alias = 'entity'): QueryBuilder
+    {
+        return $this->decoratedStore->createQueryBuilder($alias);
+    }
+
+    public function createEntity(AccessRoleDto $role): AccessRole
+    {
+        return $this->decoratedStore->createEntity($role);
+    }
+
+    public function persistRole(AccessRoleDto $role): void
+    {
+        $this->decoratedStore->persistRole($role);
+    }
+
+    public function findBy(array $params): array
+    {
+        return $this->decoratedStore->findBy($params);
     }
 }
