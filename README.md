@@ -11,7 +11,6 @@ A powerful Symfony bundle for implementing attribute-based access control in you
 - **Form Integration**: Built-in form type for managing access roles with groups and presets
 - **Interactive UI**: Frontend components with JavaScript for easy role management
 - **Expression Language Support**: Advanced subject evaluation using Symfony's expression language
-- **Performance Optimized**: Includes caching layer to improve performance in high-traffic applications
 
 ## Installation
 
@@ -125,35 +124,6 @@ public function getRoleHierarchy(): array
     ];
 }
 ```
-
-## Performance Optimization with Caching
-
-The bundle includes a caching layer to improve performance in high-traffic applications. Caching is implemented using a decorator pattern that wraps the role store with caching functionality when Symfony's Cache component is available.
-
-By default, caching is automatically enabled when a PSR-6 compatible cache pool is available in the service container. The cache stores roles with a default TTL of 1 hour.
-
-To customize caching behavior, you can:
-
-```php
-use Ema\AccessBundle\Role\CachedAccessRoleStore;
-use Symfony\Component\Cache\Adapter\RedisAdapter;
-
-// Get the cached role store instance
-$cachedRoleStore = $container->get(AccessRoleStore::class); // This will be the CachedAccessRoleStore
-
-if ($cachedRoleStore instanceof CachedAccessRoleStore) {
-    $cachedRoleStore->setCachePrefix('my_custom_prefix.')
-                   ->setDefaultTtl(7200); // 2 hours
-}
-```
-
-To manually clear the cache when needed:
-
-```php
-$roleStore->clearCache();
-```
-
-The caching decorator ensures that the core role store implementation remains clean and focused on its primary responsibility while providing transparent caching capabilities.
 
 ## Form Integration
 

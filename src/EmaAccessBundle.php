@@ -14,14 +14,11 @@ use Ema\AccessBundle\EventListener\AccessAttributeListener;
 use Ema\AccessBundle\Form\AccessType;
 use Ema\AccessBundle\Group\DefaultAccessGroupConfig;
 use Ema\AccessBundle\Preset\DefaultAccessPresetConfig;
-use Ema\AccessBundle\Role\CachedAccessRoleStore;
 use Ema\AccessBundle\Role\DefaultAccessRoleStore;
 use Ema\AccessBundle\Security\AccessRoleVoter;
-use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\HttpKernel\KernelEvents;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -40,7 +37,6 @@ class EmaAccessBundle extends AbstractBundle
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $this->registerDefaultServices($builder);
-        $this->setupCaching($builder);
         $this->registerBundleServices($container);
     }
 
@@ -72,20 +68,7 @@ class EmaAccessBundle extends AbstractBundle
                 if (!$reflector->implementsInterface(AccessRoleStore::class)) {
                     throw new \ErrorException(sprintf('Service "%s" must implement interface "%s"', $reflector->getName(), AccessRoleStore::class));
                 }
-                
-                $serviceName = $reflector->getName();
-                $container->setAlias(AccessRoleStore::class, $serviceName);
-                
-                // If cache is available, wrap the service with the cached decorator
-                if ($container->hasDefinition(CacheItemPoolInterface::class)) {
-                    $cachedServiceId = $serviceName . '.cached';
-                    $container->register($cachedServiceId, CachedAccessRoleStore::class)
-                        ->setDecoratedService(AccessRoleStore::class)
-                        ->setArguments([
-                            service($serviceName . '.inner'),
-                            service(CacheItemPoolInterface::class)
-                        ]);
-                }
+                $container->setAlias(AccessRoleStore::class, $reflector->getName());
             }
         );
 
@@ -107,27 +90,6 @@ class EmaAccessBundle extends AbstractBundle
         if (!$builder->hasDefinition(AccessRoleStore::class)) {
             $builder->register(AccessRoleStore::class, DefaultAccessRoleStore::class)
                 ->setPublic(true);
-        }
-    }
-
-    private function setupCaching(ContainerBuilder $builder): void
-    {
-        // Only apply caching if cache pool is available
-        if ($builder->hasDefinition(CacheItemPoolInterface::class)) {
-            $roleStoreDefinition = $builder->getDefinition(AccessRoleStore::class);
-
-            // Create a decorated version with caching
-            $cachedRoleStoreDefinition = new Definition(
-                CachedAccessRoleStore::class,
-                [
-                    $roleStoreDefinition,
-                    new Reference(CacheItemPoolInterface::class)
-                ]
-            );
-
-            // Replace the original service with the cached version
-            $builder->setDefinition(self::NAME . '.cached_role_store', $cachedRoleStoreDefinition);
-            $builder->setAlias(AccessRoleStore::class, self::NAME . '.cached_role_store')->setPublic(true);
         }
     }
 

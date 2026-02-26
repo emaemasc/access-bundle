@@ -41,12 +41,12 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
 
     public function getRoleNames(): array
     {
-        return \array_keys($this->roles);
+        return \array_keys($this->getRoles());
     }
 
     public function getRole(string $name): ?AccessRoleDto
     {
-        return $this->roles[$name] ?? null;
+        return $this->getRoles()[$name] ?? null;
     }
 
     public function addRole(string $name, string $title, ?array $options = null, ?string $group = null, array $presets = []): void
@@ -90,7 +90,7 @@ abstract class AbstractAccessRoleStore implements AccessRoleStore
             ->getRepository($this->getEntityClass())
             ->findBy($params);
     }
-    
+
     public function clearCache(): void
     {
         // No-op in base implementation
