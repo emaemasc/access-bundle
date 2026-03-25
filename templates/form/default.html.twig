@@ -1,7 +1,7 @@
 {% block emaemasc_access_widget %}
     <div>
-        <label class="form-control-label">{{ label }}</label>
         <div class="emaemasc-access-container" {{ block('widget_container_attributes') }}>
+            <label class="form-control-label">{{ label }}</label>
             {% if presets|length > 0 %}
                 <div class="emaemasc-access-presets">
                 <span class="emaemasc-access-preset" data-name="empty" data-items="[]">
@@ -21,11 +21,10 @@
                     {% for group in groups %}
                         {{ _self.emaemasc_access_group(form, group) }}
                     {% endfor %}
-                {% else %}
-                    {% for item in items %}
-                        {{ _self.emaemasc_access_item(form, item.name) }}
-                    {% endfor %}
                 {% endif %}
+                {% for item in ungrouped_items %}
+                    {{ _self.emaemasc_access_item(form, item) }}
+                {% endfor %}
             </div>
         </div>
     </div>

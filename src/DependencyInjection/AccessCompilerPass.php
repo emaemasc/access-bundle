@@ -50,7 +50,7 @@ class AccessCompilerPass implements CompilerPassInterface
                 $roleStore->addMethodCall('addRole', [
                     AccessRoleFormatter::from($definition->getClass()),
                     $accessClassAttribute->title,
-                    $accessClassAttribute->options,
+                    $accessClassAttribute->props,
                     $classGroupName,
                     $classPresetNames
                 ]);
@@ -69,7 +69,7 @@ class AccessCompilerPass implements CompilerPassInterface
                 $roleStore->addMethodCall('addRole', [
                     AccessRoleFormatter::from($definition->getClass(), $method->name),
                     $accessMethodAttribute->title,
-                    $accessMethodAttribute->options,
+                    $accessMethodAttribute->props,
                     empty($methodGroups) ? $classGroupName : $methodGroups[0]->newInstance()->name,
                     empty($methodPresets) ? $classPresetNames : \array_map(fn (\ReflectionAttribute $attribute) => $attribute->newInstance()->name, $methodPresets),
                 ]);

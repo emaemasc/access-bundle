@@ -64,6 +64,15 @@ class UserController
 }
 ```
 
+If you extend the role entity with additional Doctrine fields or unmapped runtime props, pass them through `props`. The bundle will write mapped values into the entity with Symfony's `PropertyAccessor` and keep the rest as role metadata:
+
+```php
+#[Access(title: "Manage users", props: ['scope' => 'admin'])]
+class UserController
+{
+}
+```
+
 ### Using Expression Language
 
 For more complex subject evaluation:
@@ -82,7 +91,7 @@ public function edit(Article $article): Response
 
 ### Custom Access Role Store
 
-Create a custom role store by extending the `AbstractAccessRoleStore`. Note that custom roles should be defined in the `configure()` method rather than the constructor, as the bundle automatically calls `configure()` during container compilation:
+Create a custom role store by extending the `AbstractAccessRoleStore`. The bundle uses the configured store directly, so custom roles should be defined in the `configure()` method rather than the constructor. `configure()` is called automatically during container compilation:
 
 ```php
 use Ema\AccessBundle\Attribute\AsAccessRoleStore;
@@ -94,7 +103,7 @@ class CustomAccessRoleStore extends AbstractAccessRoleStore
     public function configure(): void
     {
         // Define additional roles
-        $this->addRole('CUSTOM_ROLE', 'Custom Role Title', ['option' => 'value'], 'custom_group', ['preset1']);
+        $this->addRole('CUSTOM_ROLE', 'Custom Role Title', ['scope' => 'admin'], 'custom_group', ['preset1']);
     }
     
     public function getEntityClass(): string
@@ -140,6 +149,7 @@ class UserRoleManagementType extends AbstractType
     {
         $builder
             ->add('accessRoles', AccessType::class, [
+                'role_filter' => static fn ($role) => $role->getGroup() === 'users',
                 'toggle_attributes' => [
                     'data-custom-attr' => 'value'
                 ]
@@ -148,22 +158,24 @@ class UserRoleManagementType extends AbstractType
 }
 ```
 
+`role_filter` can also be an array of property criteria, for example `['group' => 'users', 'title' => 'List users']`, `['props[scope]' => 'admin']`, or `['presets' => ['admin']]`.
+
 ## Database Migration
 
 After defining your roles, run the migration command to synchronize them with the database:
 
 ```bash
-bin/console emaemasc:access:migrate
+bin/console emaemasc:access:sync
 ```
 
 This command will:
 - Create any new roles that don't exist in the database
 - Remove roles that are no longer defined in your code
-- Update role names based on your role store configuration
+- Update existing roles so their titles and `props` match your role store configuration
 
 ## Configuration
 
-The bundle automatically configures itself, but you can customize it further by creating configuration classes as shown above. The bundle also automatically registers a Twig form theme for the access form type.
+The bundle automatically configures itself, but you can customize it further by creating configuration classes as shown above. The bundle also automatically registers a Twig form theme for the access form type and resolves the active role store directly, without an additional cache wrapper.
 
 ## Frontend Components
 

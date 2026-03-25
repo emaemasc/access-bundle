@@ -25,12 +25,8 @@ interface AccessRoleStore
     public function getEntityManager(): EntityManagerInterface;
     public function createQueryBuilder(string $alias = 'entity'): QueryBuilder;
     public function createEntity(AccessRoleDto $role): AccessRole;
+    public function syncEntity(AccessRoleDto $role, AccessRole $entity): AccessRole;
 
     public function findBy(array $params): array;
     public function persistRole(AccessRoleDto $role): void;
-    
-    /**
-     * Clears the role cache if caching is enabled
-     */
-    public function clearCache(): void;
 }

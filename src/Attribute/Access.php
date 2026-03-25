@@ -5,7 +5,7 @@ namespace Ema\AccessBundle\Attribute;
 use Symfony\Component\ExpressionLanguage\Expression;
 
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION)]
-final class Access
+class Access
 {
     public function __construct(
         /**
@@ -32,9 +32,12 @@ final class Access
         public ?bool $rw = false,
 
         /**
-         * Custom options to use in actions
+         * Extra props to pass into the access role model.
+         *
+         * These values do not have to be persisted in the database. They can
+         * be mapped entity fields or unmapped runtime props.
          */
-        public ?array $options = null,
+        public ?array $props = null,
 
         /**
          * If set, will throw HttpKernel's HttpException with the given $statusCode.

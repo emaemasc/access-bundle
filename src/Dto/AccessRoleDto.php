@@ -7,15 +7,15 @@ final class AccessRoleDto
     public function __construct(
         public string  $name,
         public string  $title,
-        public ?array $options,
+        public ?array  $props,
         public ?string $group,
         public ?array  $presets,
     ) {
     }
 
-    public static function new(string $name, string $title, ?array $options, ?string $group, ?array $presets): self
+    public static function new(string $name, string $title, ?array $props, ?string $group, ?array $presets): self
     {
-        return new self($name, $title, $options, $group, $presets);
+        return new self($name, $title, $props, $group, $presets);
     }
 
     public function getName(): string
@@ -37,6 +37,17 @@ final class AccessRoleDto
     public function setTitle(string $title): self
     {
         $this->title = $title;
+        return $this;
+    }
+
+    public function getProps(): ?array
+    {
+        return $this->props;
+    }
+
+    public function setProps(?array $props): self
+    {
+        $this->props = $props;
         return $this;
     }
 

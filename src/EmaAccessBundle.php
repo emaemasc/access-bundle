@@ -5,7 +5,7 @@ namespace Ema\AccessBundle;
 use Ema\AccessBundle\Attribute\AsAccessGroupConfig;
 use Ema\AccessBundle\Attribute\AsAccessPresetConfig;
 use Ema\AccessBundle\Attribute\AsAccessRoleStore;
-use Ema\AccessBundle\Command\MigrateRolesCommand;
+use Ema\AccessBundle\Command\SyncRolesCommand;
 use Ema\AccessBundle\Contracts\AccessGroupConfig;
 use Ema\AccessBundle\Contracts\AccessPresetConfig;
 use Ema\AccessBundle\Contracts\AccessRoleStore;
@@ -98,7 +98,7 @@ class EmaAccessBundle extends AbstractBundle
         $services = $container->services();
         $services->defaults()->autowire();
 
-        $services->set(MigrateRolesCommand::class)->tag('console.command');
+        $services->set(SyncRolesCommand::class)->tag('console.command');
         $services->set(AccessType::class)->tag('form.type');
 
         $services->set(AccessRoleVoter::class)

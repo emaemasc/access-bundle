@@ -18,8 +18,6 @@ class AccessRole
     #[ORM\Column(type: 'string', length: 255)]
     protected string $title;
 
-    protected ?array $options = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -44,17 +42,6 @@ class AccessRole
     public function setTitle(string $title): self
     {
         $this->title = $title;
-        return $this;
-    }
-
-    public function getOptions(): ?array
-    {
-        return $this->options;
-    }
-
-    public function setOptions(?array $options): self
-    {
-        $this->options = $options;
         return $this;
     }
 

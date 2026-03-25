@@ -3,6 +3,8 @@
 namespace Ema\AccessBundle\Security;
 
 use Ema\AccessBundle\Contracts\AccessRoleStore;
+use Ema\AccessBundle\Dto\AccessRoleDto;
+use Ema\AccessBundle\Entity\AccessRole;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -65,13 +67,17 @@ class AccessRoleVoter implements CacheableVoterInterface
     private function buildHierarchy(): RoleHierarchy
     {
         $src = $this->roleStore->getRoleHierarchy();
-        $roleNames = $this->roleStore->getRoleNames();
         $hierarchy = [];
         foreach ($src as $role => $child) {
             if ($this->isRegex($child)) {
-                $hierarchy[$role] = \preg_grep($child, $roleNames);
+                $hierarchy[$role] = \preg_grep($child, $this->roleStore->getRoleNames());
             } else if (\is_array($child)) {
                 $hierarchy[$role] = $child;
+            } else if (\is_callable($child)) {
+                $hierarchy[$role] = \array_map(
+                    fn (AccessRoleDto $role) => $role->name,
+                    \array_filter($this->roleStore->getRoles(), $child)
+                );
             } else {
                 throw new \RuntimeException('Unexpected role hierarchy');
             }
