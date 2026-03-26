@@ -158,7 +158,11 @@ class UserRoleManagementType extends AbstractType
 }
 ```
 
-`role_filter` can also be an array of property criteria, for example `['group' => 'users', 'title' => 'List users']`, `['props[scope]' => 'admin']`, or `['presets' => ['admin']]`.
+Available form options:
+
+- `role_filter`: a callable or an array of property criteria. For arrays, the keys are property paths on the role DTO, for example `['group' => 'users', 'title' => 'List users']`, `['props[scope]' => 'admin']`, or `['presets' => ['admin']]`.
+- `show_presets`: set to `false` to hide preset buttons in the UI.
+- `toggle_attributes`: additional HTML attributes passed to the toggle controls.
 
 ## Database Migration
 

@@ -70,7 +70,7 @@ class AccessType extends AbstractType
 
         $view->vars['items'] = $data['items'];
         $view->vars['groups'] = $data['groups'];
-        $view->vars['presets'] = $options['show_presets'] ? $data['presets'] : [];
+        $view->vars['presets'] = ($options['show_presets'] ?? true) ? $data['presets'] : [];
         $view->vars['ungrouped_items'] = $data['ungrouped_items'];
         $view->vars['toggle_attributes'] = $options['toggle_attributes'] ?? [];
     }
@@ -160,12 +160,24 @@ class AccessType extends AbstractType
 
     private function cloneGroups(): array
     {
-        return \array_map(static fn (AccessGroupDto $group): AccessGroupDto => clone $group, $this->groups);
+        $groups = [];
+
+        foreach ($this->groups as $key => $group) {
+            $groups[$key] = clone $group;
+        }
+
+        return $groups;
     }
 
     private function clonePresets(): array
     {
-        return \array_map(static fn (AccessPresetDto $preset): AccessPresetDto => clone $preset, $this->presets);
+        $presets = [];
+
+        foreach ($this->presets as $key => $preset) {
+            $presets[$key] = clone $preset;
+        }
+
+        return $presets;
     }
 
     private function invokeRoleFilter(callable $roleFilter, AccessRoleDto $role): bool
