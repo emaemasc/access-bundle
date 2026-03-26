@@ -4,7 +4,6 @@ namespace Ema\AccessBundle\Security;
 
 use Ema\AccessBundle\Contracts\AccessRoleStore;
 use Ema\AccessBundle\Dto\AccessRoleDto;
-use Ema\AccessBundle\Entity\AccessRole;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -60,7 +59,11 @@ class AccessRoleVoter implements CacheableVoterInterface
     public function getReachableRoleNames(array $roles): array
     {
         $key = \md5(\serialize($roles));
-        $this->reachableRoles[$key] ??= $this->roleHierarchy->getReachableRoleNames($roles);
+        if (isset($this->reachableRoles[$key])) {
+            return $this->reachableRoles[$key];
+        }
+
+        $this->reachableRoles[$key] = $this->roleHierarchy->getReachableRoleNames($roles);
         return $this->reachableRoles[$key];
     }
 
