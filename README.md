@@ -122,7 +122,7 @@ class CustomAccessRoleStore extends AbstractAccessRoleStore
 
 ### Role Hierarchy Configuration
 
-The bundle supports flexible role hierarchies using either explicit role lists or regular expressions:
+The bundle supports flexible role hierarchies using explicit role lists, regular expressions, or callables as role-matching rules inside the hierarchy array:
 
 ```php
 public function getRoleHierarchy(): array
@@ -130,6 +130,7 @@ public function getRoleHierarchy(): array
     return [
         'ROLE_SUPER_ADMIN' => '/PREFIX_.*/',  // Regex pattern matching
         'ROLE_ADMIN' => ['PREFIX_MANAGE_USERS', 'PREFIX_MANAGE_CONTENT'],  // Explicit roles
+        'ROLE_SOME_ADMIN' => static fn (AccessRoleDto $role): bool => $role->props && ($role->props['some_prop'] ?? null) === 1,  // Dynamic matcher
     ];
 }
 ```
