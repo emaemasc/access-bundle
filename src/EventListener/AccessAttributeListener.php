@@ -48,18 +48,23 @@ class AccessAttributeListener
         $methodAttributes = $reflectionMethod->getAttributes(Access::class);
         $classAttributes = $reflectionClass->getAttributes(Access::class);
 
+        $granted = false;
         foreach ($methodAttributes as $methodAttribute) {
             /** @var Access $attribute */
             $attribute = $methodAttribute->newInstance();
             $subject = $this->getAccessSubject($attribute, $request, $arguments);
             $this->check(AccessRoleFormatter::from(\get_class($controllerObject), $methodName), $attribute, $subject);
+            $granted = true;
         }
 
-        foreach ($classAttributes as $classAttribute) {
-            /** @var Access $attribute */
-            $attribute = $classAttribute->newInstance();
-            $subject = $this->getAccessSubject($attribute, $request, $arguments);
-            $this->check(AccessRoleFormatter::from(\get_class($controllerObject)), $attribute, $subject);
+        // Skip parent access check if method access is granted
+        if (!$granted) {
+            foreach ($classAttributes as $classAttribute) {
+                /** @var Access $attribute */
+                $attribute = $classAttribute->newInstance();
+                $subject = $this->getAccessSubject($attribute, $request, $arguments);
+                $this->check(AccessRoleFormatter::from(\get_class($controllerObject)), $attribute, $subject);
+            }
         }
     }
 

@@ -51,6 +51,11 @@ final class AccessRoleDto
         return $this;
     }
 
+    public function getProp(string $name): mixed
+    {
+        return $this->props[$name] ?? null;
+    }
+
     public function getGroup(): ?string
     {
         return $this->group;
