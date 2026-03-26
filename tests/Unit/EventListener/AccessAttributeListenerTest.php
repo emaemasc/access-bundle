@@ -106,6 +106,29 @@ class AccessAttributeListenerTest extends TestCase
         $this->listener->__invoke($event);
     }
 
+    public function testInvokeSkipsParentClassWhenMethodPermissionIsGranted(): void
+    {
+        $controllerObject = new #[Access(title: "Parent Access")] class() {
+            #[Access(title: "Test Action")]
+            public function testAction(): void {}
+        };
+
+        $methodRoleName = AccessRoleFormatter::from(get_class($controllerObject), 'testAction');
+
+        $this->authChecker->expects($this->once())
+            ->method('isGranted')
+            ->with($methodRoleName, null)
+            ->willReturn(true);
+
+        $request = new Request();
+        $controller = [$controllerObject, 'testAction'];
+        $kernel = $this->createMock(HttpKernelInterface::class);
+
+        $event = new ControllerArgumentsEvent($kernel, $controller, [], $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $this->listener->__invoke($event);
+    }
+
     public function testInvokeWithDeniedPermissionThrowsException(): void
     {
         $controllerObject = new class() {
